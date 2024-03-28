@@ -257,6 +257,8 @@ body {
 
 .details img {
   width: 33%;
+  object-fit: contain;
+  height: 100%;
 }
 
 .details-overview {

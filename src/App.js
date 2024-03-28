@@ -64,39 +64,47 @@ const average = (arr) =>
 export default function App() {
   const [query, setQuery] = useState("spiderman");
   const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
   function handleSelectedMovie(id) {
-    setSelectedId(id);
+    setSelectedId((selectedId) => (id === selectedId ? null : id));
   }
 
-  async function fetchMovies() {
-    try {
-      setIsLoading(true);
-      setError("");
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=47c66884&s=${query}`
-      );
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
 
-      if (!res.ok) throw new Error("something wrong w/ fetching");
-
-      const data = await res.json();
-
-      if (data.Response === "False") throw new Error(data.Error);
-
-      setMovies(data.Search);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+  function handleAddWatched(movie) {
+    setWatched((watched) => [...watched, movie]);
   }
 
   useEffect(
     function () {
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=47c66884&s=${query}`
+          );
+
+          if (!res.ok) throw new Error("something wrong w/ fetching");
+
+          const data = await res.json();
+
+          if (data.Response === "False") throw new Error(data.Error);
+
+          setMovies(data.Search);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
       if (query.length < 3) {
         setMovies([]);
         setError("");
@@ -123,7 +131,11 @@ export default function App() {
         </Box>
         <Box>
           {selectedId ? (
-            <SelectedMovie selectedId={selectedId} />
+            <SelectedMovie
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+              onAddWatched={handleAddWatched}
+            />
           ) : (
             <>
               <WatchedSummary watched={watched} average={average} />
